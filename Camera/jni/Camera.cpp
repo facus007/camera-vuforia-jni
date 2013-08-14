@@ -256,7 +256,24 @@ void initRendering() {
 	glClearColor(0.0f, 0.0f, 0.0f, QCAR::requiresAlpha() ? 0.0f : 1.0f);
 }
 
+JNIEXPORT void JNICALL
+Java_com_example_camera_CameraActivity_finalizaTracker(JNIEnv *, jobject) {
+	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 
+//desativaDataset();
+
+	trackerManager.deinitTracker(QCAR::Tracker::IMAGE_TRACKER);
+}
+
+JNIEXPORT void JNICALL
+Java_com_example_camera_CameraActivity_pararCamera(JNIEnv *, jobject) {
+	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
+	QCAR::Tracker* imageTracker = trackerManager.getTracker(QCAR::Tracker::IMAGE_TRACKER);
+	imageTracker->stop();
+
+	QCAR::CameraDevice::getInstance().stop();
+	QCAR::CameraDevice::getInstance().deinit();
+}
 
 #ifdef __cplusplus
 }

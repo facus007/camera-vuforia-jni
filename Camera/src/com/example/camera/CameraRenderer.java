@@ -25,7 +25,7 @@ public class CameraRenderer implements Renderer {
 
 	@Override
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
-		System.out.println("Entro por aki....");
+		
 		updateRenderer(width, height);
 		QCAR.onSurfaceChanged(width, height);
 		

@@ -36,9 +36,7 @@ public class CameraActivity extends Activity  {
 		System.out.println("Ligar Camera!!!");
 		addGLView();
 	}
-	
-	
-	
+			
 	/*public void onCreate() {		
 		iniciaQCAR();
 		iniciaTracker();		
@@ -86,18 +84,23 @@ public class CameraActivity extends Activity  {
 		System.out.println("Saindo do onResume");
 	}
 	
+	public void onPause() {
+		super.onPause();
+		pouseGLView();
+		pararCamera();
+		QCAR.onPause();
+	}
+
+	public void onDestroy() {
+		super.onDestroy();
+		finalizaTracker();
+		QCAR.deinit();
+	}
 	
-	/*private void iniciaAplicacaoAR() {
-		DisplayMetrics metrics = new DisplayMetrics();
-		this.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-
-		iniciaAplicacaoNative(metrics.widthPixels, metrics.heightPixels);
-
-		glView = new GLSurfaceView(activity);
-		//renderer = new ARRenderer(activity, bancoDeDados);
-
-		glView.setRenderer(renderer);
-	}*/
+	private void pouseGLView() {
+		glView.setVisibility(View.INVISIBLE);
+		glView.onPause();
+	}
 	
 	private void resumeGLView() {
 		glView.setVisibility(View.VISIBLE);
@@ -115,7 +118,8 @@ public class CameraActivity extends Activity  {
 	public native int  startCamera(); 
 	private native void setProjectionMatrix();
 	private native void iniciaAplicacaoNative(int largura, int altura);
-	
+	private native void pararCamera();
+	private native void finalizaTracker();
 	public static boolean loadLibrary(String nLibName)
     {
         try
