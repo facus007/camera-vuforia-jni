@@ -61,6 +61,7 @@ public class CameraActivity extends Activity  {
 		iniciaAplicacaoNative(metrics.widthPixels, metrics.heightPixels);
 		glView = new GLSurfaceView(this);
 		System.out.println("glview ok!!!");
+		glView.setEGLContextClientVersion(2);
 		renderer = new CameraRenderer();
 		glView.setRenderer(renderer);
 
@@ -109,7 +110,7 @@ public class CameraActivity extends Activity  {
 
 	private void iniciaQCAR() {
 		System.out.println("Iniciando QCAR");
-		QCAR.setInitParameters(this, QCAR.GL_11);
+		QCAR.setInitParameters(this, QCAR.GL_20);
 		QCAR.init();
 		System.out.println("QCAR iniciado com sucesso!!!");
 	}
