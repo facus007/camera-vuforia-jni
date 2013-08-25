@@ -44,17 +44,13 @@ LOCAL_MODULE := Camera
 # The variable USE_OPENGL_ES_1_1 determines the OpenGL ES API version
 # to use. If set to true, OpenGL ES 1.1 is used, otherwise OpenGL ES 2.0.
 
-USE_OPENGL_ES_1_1 := false
+#USE_OPENGL_ES_2_0 := true
 
 # Set OpenGL ES version-specific settings.
 
-ifeq ($(USE_OPENGL_ES_1_1), true)
-    OPENGLES_LIB  := -lGLESv1_CM
-	OPENGLES_DEF  := -DUSE_OPENGL_ES_1_1
-else
-    OPENGLES_LIB  := -lGLESv2
-	OPENGLES_DEF  := -DUSE_OPENGL_ES_2_0
-endif
+
+OPENGLES_LIB  := -lGLESv2
+OPENGLES_DEF  := -DUSE_OPENGL_ES_2_0
 
 # An optional set of compiler flags that will be passed when building
 # C and C++ source files.
