@@ -1,12 +1,14 @@
 package com.example.camera;
 
+import java.util.Vector;
 import com.qualcomm.QCAR.QCAR;
-
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
 
 public class CameraActivity extends Activity  {
@@ -14,6 +16,11 @@ public class CameraActivity extends Activity  {
 	
 	private GLSurfaceView glView;	
 	private CameraRenderer renderer;
+	private Vector<Texture> mTextures;
+	
+    // Display size of the device:
+    private int mScreenWidth = 0;
+    private int mScreenHeight = 0;
 	
 	/** Static initializer block to load native libraries on start-up. */
     static
@@ -27,67 +34,94 @@ public class CameraActivity extends Activity  {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//setContentView(R.layout.main);
-		System.out.println("Teste Activity");
+		
+		// Load any sample specific textures:
+        mTextures = new Vector<Texture>();
+        loadTextures();        
+        
 		iniciaQCAR();
-		initTracker();
+		
+		initAplication();
+		
 		iniciarAplicacaoAR();
-		System.out.println("Tracker Iniciado!!!");
-		System.out.println("Ligar Camera!!!");
+		
+		initTracker();
+		
 		addGLView();
+		
+		onPostExecute();
 	}
-			
-	/*public void onCreate() {		
-		iniciaQCAR();
-		iniciaTracker();		
-		iniciaAplicacaoAR();		
-		carregaDadosDoTracker();
-		addGLView();
+	
+	private void initAplication() {
+		int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+		setRequestedOrientation(screenOrientation);
+		
+		storeScreenDimensions();
+		
+		// As long as this window is visible to the user, keep the device's
+        // screen turned on and bright:
+        getWindow().setFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
 	}
 
-	public void onResume() {
-		resumeGLView();
-		iniciaCamera();
-		setProjectionMatrix();
-		QCAR.onResume();
-	}*/
-	/*public void onResume() {
-		System.out.println("OnResume!!!");
-	}*/
-	
+	private void storeScreenDimensions() {
+		
+		 DisplayMetrics metrics = new DisplayMetrics();
+	        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+	        mScreenWidth = metrics.widthPixels;
+	        mScreenHeight = metrics.heightPixels;
+		
+	}
+
 	private void iniciarAplicacaoAR() {
-		DisplayMetrics metrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(metrics);
-		iniciaAplicacaoNative(metrics.widthPixels, metrics.heightPixels);
+		
+		initApplicationNative(mScreenWidth, mScreenHeight);
+		            
 		glView = new GLSurfaceView(this);
-		System.out.println("glview ok!!!");
+		
 		glView.setEGLContextClientVersion(2);
 		renderer = new CameraRenderer();
 		glView.setRenderer(renderer);
 
 				
 	}
+	
+	private void iniciaQCAR() {
+		
+		QCAR.setInitParameters(this, QCAR.GL_20);
+		QCAR.init();
 
+	}
 	private void addGLView() {
-		System.out.println("entrou no addGLView!!!");
+		
 		addContentView(glView, new LayoutParams(LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT));
-		System.out.println("Add GLView!!!");
+		
 	}
+	
+	protected void onPostExecute()
+    {
+        
+		// Done loading the tracker, update application status:
+            onQCARInitializedNative();
+ 
+    }
 
 	public void onResume() {
 		super.onResume();
-		System.out.println("OnResume!!!");
-		resumeGLView();
+		
+		QCAR.onResume();
 		startCamera();
 		setProjectionMatrix();
-		QCAR.onResume();
-		System.out.println("Saindo do onResume");
+		resumeGLView();
+		
 	}
 	
 	public void onPause() {
 		super.onPause();
-		pouseGLView();
+		pauseGLView();
 		pararCamera();
 		QCAR.onPause();
 	}
@@ -98,7 +132,7 @@ public class CameraActivity extends Activity  {
 		QCAR.deinit();
 	}
 	
-	private void pouseGLView() {
+	private void pauseGLView() {
 		glView.setVisibility(View.INVISIBLE);
 		glView.onPause();
 	}
@@ -108,35 +142,51 @@ public class CameraActivity extends Activity  {
 		glView.onResume();
 	}
 
-	private void iniciaQCAR() {
-		System.out.println("Iniciando QCAR");
-		QCAR.setInitParameters(this, QCAR.GL_20);
-		QCAR.init();
-		System.out.println("QCAR iniciado com sucesso!!!");
-	}
+    private void loadTextures()
+    {
+        mTextures.add(Texture.loadTextureFromApk("TextureWireframe.png",
+                getAssets()));
 
+    }
+
+    
+    public int getTextureCount()
+    {
+        return mTextures.size();
+    }
+
+
+    
+    public Texture getTexture(int i)
+    {
+        return mTextures.elementAt(i);
+    }
+    
 	public native int  initTracker(); 
 	public native int  startCamera(); 
 	private native void setProjectionMatrix();
 	private native void iniciaAplicacaoNative(int largura, int altura);
 	private native void pararCamera();
 	private native void finalizaTracker();
+	private native void initApplicationNative(int width, int height);
+	public native void onQCARInitializedNative();
+	
 	public static boolean loadLibrary(String nLibName)
     {
         try
         {
             System.loadLibrary(nLibName);
-            //DebugLog.LOGI("Native library lib" + nLibName + ".so loaded");
+            
             return true;
         }
         catch (UnsatisfiedLinkError ulee)
         {
-            //DebugLog.LOGE("The library lib" + nLibName +                             ".so could not be loaded");
+            
         	ulee.printStackTrace();
         }
         catch (SecurityException se)
         {
-           // DebugLog.LOGE("The library lib" + nLibName +       ".so was not allowed to be loaded");
+           
         	se.printStackTrace();
         }
 
