@@ -1,0 +1,1 @@
+Projeto de Camera android usando vuforia JNI
